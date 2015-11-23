@@ -12,15 +12,35 @@ public:
 	Card(int suit, int rank) { //suit is 0-3, rank is 0-12
 		this->suit = suit;
 		this->rank = rank;
-	};
+	}
 	int getRank() {
 		return rank;
-	};
+	}
 	int getSuit() {
 		return suit;
-	};
+	}
 	string toString() {
 		return ranks[rank] + " of " + suits[suit];
+	}
+	void printCard() {
+		cout << " ___ " << endl;
+		if (rank == 0 || rank > 9) {
+			cout << "|" << (char)toupper(ranks[rank][0]) << "  |" << endl;
+		} else if (rank == 9) {
+			cout << "|10 |" << endl;
+		} else {
+			cout << "|" << rank + 1 << "  |" << endl;
+		}
+		if (suit == 0) {
+			cout << "| \u2663 |" << endl;
+		} else if (suit == 1) {
+			cout << "| \u2666 |" << endl;
+		} else if (suit == 2) {
+			cout << "| \u2665 |" << endl;
+		} else {
+			cout << "| \u2660 |" << endl;
+		}
+		cout << "'–––'" << endl;
 	}
 private:
   int suit;
@@ -41,10 +61,10 @@ public:
 			pile[i+26] = Card(2, i);	// hearts
 			pile[i+39] = Card(3, i);	// spades
 		}
-	};
+	}
   void shuffle() {
 		Deck();
-	};
+	}
   Card drawCard() {
 		Card thePick;
 		Card temp;
@@ -55,10 +75,10 @@ public:
 		pile[pos] = temp;
 		size--;
 		return thePick;
-	};
+	}
   Card getCard(int i) {
 		return pile[i];
-	};
+	}
 private:
 	Card pile[52];
 	int size;
@@ -72,79 +92,90 @@ public:
     folded = false;
 		allIn = false;
 		bet = 0;
-  };
+		rank = 0;
+  }
   int getChips() {
     return chips;
-  };
+  }
   void setChips(int value) {
     chips = value;
-  };
+  }
   void addChips(int value) {
     chips += value;
-  };
+  }
   void subtractChips(int value) {
     chips -= value;
-  };
+  }
+	int getTotalChips() {
+		return chips + chipsInPot;
+	}
   Card getCard1() {
-    return card1;
-  };
+    return cards[0];
+  }
   Card getCard2() {
-    return card2;
-  };
+    return cards[1];
+  }
+	Card* getCards() {
+		return cards;
+	}
   void setCard1(Card c) {
-    card1 = c;
-  };
+    cards[0] = c;
+  }
   void setCard2(Card c) {
-    card2 = c;
-  };
+    cards[1] = c;
+  }
   string getName() {
     return name;
-  };
+  }
   void setName(string n) {
     name = n;
-  };
+  }
   int getChipsInPot() {
     return chipsInPot;
-  };
+  }
   void addChipsToPot(int value) {
+		if (value >= chips) {
+			value = chips;
+			allIn = true;
+		}
     subtractChips(value);
     chipsInPot += value;
 		bet += value;
-  };
+  }
 	int getBet() {
 		return bet;
-	};
+	}
 	void resetBet() {
 		bet = 0;
-	};
+	}
   void fold() {
     folded = true;
-  };
+  }
   bool hasFolded() {
     return folded;
-  };
-	void goAllIn() {
-		allIn = true;
-		chipsInPot += chips;
-		chips = 0;
-	};
+  }
 	bool isAllIn() {
 		return allIn;
-	};
+	}
 	void goOut() {
 		out = true;
-	};
+	}
 	bool isOut() {
 		return out;
-	};
+	}
   void newRound() {
     chipsInPot = 0;
     folded = false;
 		allIn = false;
-  };
+  }
+	void setRank(int num) {
+		rank = num;
+	}
+	int getRank() {
+		return rank;
+	}
 private:
-  Card card1;
-  Card card2;
+  Card cards[2];
   int chips;
   int chipsInPot;
 	int bet;
@@ -152,6 +183,7 @@ private:
   bool folded;
 	bool allIn;
 	bool out;
+	int rank;
 };
 
 class Poker {
@@ -173,25 +205,18 @@ public:
 		this->bigBlind = bigBlind;
 		littleBlind = ceil(bigBlind/2);
 		theDeck.shuffle();
-    for (int i=0; i<numPlayers; i++) {
+    for (int i = 0; i < numPlayers; i++) {
       players[i].setCard1(theDeck.drawCard());
       players[i].setCard2(theDeck.drawCard());
+			players[i].setRank(i+1);
     }
-		//the flop
-		theDeck.drawCard(); //burn
-		for (int i = 0; i < 3; i++) {
-			cardsOnTable[i] = theDeck.drawCard(); //return
+		for (int i = 0; i < 5; i++) {
+			cardsOnTable[i] = theDeck.drawCard();
 		}
-		//the turn
-		theDeck.drawCard(); //burn
-		cardsOnTable[3] = theDeck.drawCard(); //return
-		//the river
-		theDeck.drawCard(); //burn
-		cardsOnTable[4] = theDeck.drawCard(); //return
 	}
 	Card* getCardsOnTable() {
 		return cardsOnTable;
-	};
+	}
 	void newRound() {
 		theDeck.shuffle();
     for (int i=0; i<numPlayers; i++) {
@@ -225,7 +250,39 @@ public:
 		for (int i = 0; i < numPlayers; i++) {
 			players[i].newRound();
 		}
-	};
+	}
+	void printCards(Card* cards, int numCards) {
+		for (int i = 0; i < numCards; i++) {
+			cout << " ___   ";
+		}
+		cout << endl;
+		for (int i = 0; i < numCards; i++) {
+			if (cards[i].getRank() == 0 || cards[i].getRank() > 9) {
+				cout << "|" << (char)toupper(cards[i].toString()[0]) << "  |  ";
+			} else if (cards[i].getRank() == 9) {
+				cout << "|10 |  ";
+			} else {
+				cout << "|" << cards[i].getRank() + 1 << "  |  ";
+			}
+		}
+		cout << endl;
+		for (int i = 0; i < numCards; i++) {
+			if (cards[i].getSuit() == 0) {
+				cout << "| \u2663 |  ";
+			} else if (cards[i].getSuit() == 1) {
+				cout << "| \u2666 |  ";
+			} else if (cards[i].getSuit() == 2) {
+				cout << "| \u2665 |  ";
+			} else {
+				cout << "| \u2660 |  ";
+			}
+		}
+		cout << endl;
+		for (int i = 0; i < numCards; i++) {
+			cout << "'–––'  ";
+		}
+		cout << endl;
+	}
 	void blind() {
 		int turn = dealer;
 		cout << "--------------------------------------------------" << endl;
@@ -236,7 +293,8 @@ public:
 		}
 		cout << "--------------------------------------------------" << endl;
 		cout << players[turn].getName() << " is little blind." << endl;
-		players[dealer+1].addChipsToPot(littleBlind);
+		players[turn].addChipsToPot(littleBlind);
+		pot += players[turn].getChipsInPot();
 		turn++;
 		if (turn > numPlayers-1) {
 			turn = 0;
@@ -244,9 +302,9 @@ public:
 		cout << "--------------------------------------------------" << endl;
 		cout << players[turn].getName() << " is big blind." << endl;
 		players[turn].addChipsToPot(bigBlind);
-		pot = bigBlind + littleBlind;
+		pot += players[turn].getChipsInPot();
 		bet = bigBlind;
-	};
+	}
 	int bettingRound(int round) { //0 = carry on, 1 = everyone folded, 2 =
 																//everyone went all in
 		int turn;
@@ -273,7 +331,8 @@ public:
         cin >> move;
         if (move.compare("check") == 0) {
           if (bet != 0 && players[turn].getBet() != bet) {
-            cout << "You must call the bet or raise." << endl;
+            cout << "You must call the bet, raise, or fold." << endl;
+						continue;
           } else {
 						playersMatchingBet++;
             exitLoop = true;
@@ -281,41 +340,63 @@ public:
         } else if (move.compare("bet") == 0) {
           int newBet;
 					int toCall = bet-players[turn].getBet();
-					while (true) {
-						if (bet == 0) {
-							cout << "How much would you like to bet?";
+					if (toCall >= players[turn].getChips()) {
+						cout << "You don't have enough chips to bet." << endl;
+						continue;
+					} else if (toCall + bigBlind > players[turn].getChips()) {
+						string response;
+						cout << "Go all in?" << endl << "-> ";
+						cin >> response;
+						if (response.compare("yes") == 0) {
+							pot += players[turn].getChips();
+							bet += players[turn].getChips() - toCall;
+							playersMatchingBet = 0;
+							players[turn].addChipsToPot(players[turn].getChips());
+							playersAllIn++;
+							exitLoop = true;
 						} else {
-							cout << "How much would you like to raise?";
-						}
-						cout << " (max: " << players[turn].getChips() - toCall << ")" <<
-							endl << "-> ";
-	          cin >> newBet;
-						if (newBet < bigBlind) {
-							cout << "The minimum bet is " << bigBlind << endl;
 							continue;
-						} else if (newBet >= players[turn].getChips() - toCall){
-							string response;
-              cout << "Go all in?" << endl << "-> ";
-              cin >> response;
-              if (response.compare("yes") == 0) {
-                pot += players[turn].getChips();
-								bet += players[turn].getChips() - toCall;
-								players[turn].goAllIn();
-                playersAllIn++;
-                exitLoop = true;
-              }
-						} else {
-							pot += newBet;
-							bet += newBet;
-		          players[turn].addChipsToPot(newBet);
-		          playersMatchingBet = 1;
-		          exitLoop = true;
 						}
-						break;
+					} else {
+						while (true) {
+							if (bet == 0) {
+								cout << "How much would you like to bet?";
+							} else {
+								cout << "How much would you like to raise?";
+							}
+							/*cout << " (max: " << players[turn].getChips() - toCall << ")" <<
+								endl << "-> ";*/
+		          cin >> newBet;
+							if (newBet < bigBlind) {
+								cout << "The minimum bet is " << bigBlind << endl;
+								continue;
+							} else if (newBet >= players[turn].getChips() - toCall){
+								string response;
+	              cout << "You don't have enough chips. Go all in?" << endl << "-> ";
+	              cin >> response;
+	              if (response.compare("yes") == 0) {
+	                pot += players[turn].getChips();
+									bet += players[turn].getChips() - toCall;
+									playersMatchingBet = 0;
+									players[turn].addChipsToPot(players[turn].getChips());
+	                playersAllIn++;
+	                exitLoop = true;
+	              }
+							} else {
+								pot += newBet;
+								bet += newBet;
+			          players[turn].addChipsToPot(newBet);
+			          playersMatchingBet = 1;
+			          exitLoop = true;
+							}
+							break;
+						}
 					}
         } else if (move.compare("call") == 0) {
           if (bet == players[turn].getBet()) {
-            cout << "There is no bet to call. You must check or bet.";
+            cout << "There is no bet to call. You must check, bet, or fold." <<
+							endl;
+						continue;
           } else {
             int toCall = bet-players[turn].getBet();
             if (players[turn].getChips() > toCall) {
@@ -330,67 +411,76 @@ public:
               if (response.compare("yes") == 0) {
                 pot += players[turn].getChips();
 								bet += players[turn].getChips() - toCall;
-								players[turn].goAllIn();
+								players[turn].addChipsToPot(players[turn].getChips());
                 playersAllIn++;
                 exitLoop = true;
-              }
+              } else {
+								continue;
+							}
             }
           }
         } else if (move.compare("fold") == 0) {
           players[turn].fold();
           playersFolded++;
 					exitLoop = true;
-        } else {
-          cout << "Invalid input. Options: check, bet, call, fold.";
+        } else if (move.compare("q") == 0) {
+					return 3;
+				} else {
+          cout << "Invalid input. Options: check, call, bet, fold." << endl;
         }
         if (exitLoop) {
           break;
         }
       }
       if (playersMatchingBet + playersFolded + playersAllIn + playersOut ==
-				numPlayers) {
+				numPlayers || playersFolded == numPlayers - playersOut - 1) {
         break;
       }
       turn++;
       if (turn >= numPlayers) {
         turn = 0;
       }
-			if (playersFolded == numPlayers - playersOut - 1) {
-				return 1;
-			} else if (playersAllIn == numPlayers - playersOut) {
-				return 2;
-			} else {
-				return 0;
-			}
     }
 	  playersMatchingBet = 0;
 		bet = 0;
 		for (int i = 0; i < numPlayers; i++) {
 			players[i].resetBet();
 		}
-	};
+		if (playersFolded == numPlayers - playersOut - 1) {
+			return 1;
+		} else if (playersAllIn == numPlayers - playersOut - playersFolded) {
+			return 2;
+		} else {
+			return 0;
+		}
+	}
 	void printPlayerPrompt(int player, int round) {
 		cout << players[player].getName() << ", your turn." << endl;
 		if (round > 1) {
 			cout << "Cards on the table:" << endl;
-			for (int i = 0; i < round+1; i++) {
-				cout << cardsOnTable[i].toString() << endl;
-			}
+			printCards(cardsOnTable, round+1);
 		}
-		cout << "Your hand: " << players[player].getCard1().toString() <<
-			" and " << players[player].getCard2().toString() << endl;
+		cout << "Your hand: " << endl;
+		printCards(players[player].getCards(), 2);
 		cout << "Your chips: " << players[player].getChips() << endl;
 		cout << "Chips in the pot: " << pot << endl;
-		cout << "The current bet is " << bet << ". " <<
-			bet-players[player].getBet() << " to call." << endl;
-	};
+		cout << "The current bet is " << bet << ". ";
+		if (bet != 0 && bet-players[player].getBet() != 0) {
+			cout << bet-players[player].getBet() << " to call.";
+		}
+		cout << endl;
+	}
 	Player getWinner() {
 		//returns winner, gives out money, determines players who are out
+		//rank all players. first out's rank = numPlayers
 		return players[dealer];
-	};
+	}
 	int getPot() {
 		return pot;
-	};
+	}
+	bool isGameOver() {
+		return playersOut == numPlayers-1;
+	}
 private:
 	Player* players;
 	int numPlayers;
@@ -414,7 +504,7 @@ int main() {
 	cout << "==================================================" << endl;
 	cout << "Poker.cpp (c) Darwin, Jerry, & Nick" << endl;
 	cout << "==================================================" << endl;
-  cout << "Enter number of players: ";
+  cout << "Enter number of players: "; //error trap this stuff
   cin >> numPlayers;
   cout << "Enter number of chips: ";
   cin >> chips;
@@ -434,35 +524,71 @@ int main() {
   }
   Deck theDeck;
 	Poker game(players, numPlayers, theDeck, bigBlind);
-  bool isPlaying = true;
+	int gameStatus = 0;
 
   // game loop
-  while (isPlaying) {
-		game.bettingRound(1);
-		cout << "//////////////////////////////////////////////////" << endl;
-		cout << "The flop:" << endl;
-		for (int i = 0; i < 3; i++) {
-			cout << game.getCardsOnTable()[i].toString() << endl;
+  while (true) {
+		gameStatus = game.bettingRound(1);
+		if (gameStatus == 0) {
+			cout << "//////////////////////////////////////////////////" << endl;
+			cout << "The flop:" << endl;
+			game.printCards(game.getCardsOnTable(), 3);
+			gameStatus = game.bettingRound(2);
+			if (gameStatus == 0) {
+				cout << "//////////////////////////////////////////////////" << endl;
+				cout << "The turn:" << endl;
+				game.printCards(game.getCardsOnTable(), 4);
+				gameStatus = game.bettingRound(3);
+				if (gameStatus == 0) {
+					cout << "//////////////////////////////////////////////////" << endl;
+					cout << "The river:" << endl;
+					game.printCards(game.getCardsOnTable(), 5);
+					gameStatus = game.bettingRound(4);
+				}
+			}
 		}
-		game.bettingRound(2);
-		cout << "//////////////////////////////////////////////////" << endl;
-		cout << "The turn:" << endl;
-		for (int i = 0; i < 4; i++) {
-			cout << game.getCardsOnTable()[i].toString() << endl;
+		if (gameStatus == 3) {
+			cout << "==================================================" << endl;
+			cout << "Game over." << endl << "Scores:" << endl;
+			for (int i = 0; i < numPlayers; i++) {
+				if (players[i].getRank() == i + 1) {
+					cout << players[i].getName() << ": "<< players[i].getTotalChips() <<
+						endl;
+				}
+			}
+			cout << "==================================================" << endl;
+			break;
+		} else {
+			cout << "//////////////////////////////////////////////////" << endl;
+			if (gameStatus == 0) {
+				//show hands (showdown)
+			}
+			cout << game.getWinner().getName() << " wins the hand!" << endl;
 		}
-		game.bettingRound(3);
-		cout << "//////////////////////////////////////////////////" << endl;
-		cout << "The river:" << endl;
-		for (int i = 0; i < 5; i++) {
-			cout << game.getCardsOnTable()[i].toString() << endl;
+		if (game.isGameOver()) {
+			cout << "==================================================" << endl;
+			cout << "Game Over." << endl;
+			cout << game.getWinner().getName() << " wins the game!" << endl;
+			for (int i = 1; i < numPlayers; i++) {
+				if (i == 1) {
+					cout << "2nd: ";
+				} else if (i == 2) {
+					cout << "3rd: ";
+				} else {
+					cout << i + 1 << "th: ";
+				}
+				for (int j = 0; j < numPlayers; j++) {
+					if (players[j].getRank() == i + 1) {
+						cout << players[i].getName() << endl;
+						break;
+					}
+				}
+			}
+			cout << "==================================================" << endl;
+			break;
 		}
-		game.bettingRound(4);
-		Player winner = game.getWinner();
-		cout << "//////////////////////////////////////////////////" << endl;
-		//show hands
-		cout << winner.getName() << " wins!" << endl;
 		game.newRound();
-		isPlaying = false;
+		gameStatus = 0;
 		cout << "==================================================" << endl;
   }
 
